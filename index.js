@@ -1195,10 +1195,92 @@ client.on("interactionCreate", async interaction => {
           return interaction.update({ embeds: [embed] });
         }
       }
-
       if (action === "manual" && parts[2] === "end") {
         const gangId = parts[3];
         const userId = interaction.user.id;
 
         const warEntry = Object.values(db.wars).find(w => w.gangId === gangId && w.status === "active");
-        if (!warEntry) return interactio
+        if (!warEntry) return interaction.reply({ content: "❌ لا توجد حرب نشطة.", ephemeral: true });
+
+        if (!policeLeader(interaction.member) && !gangManagement(db, userId))
+          return interaction.reply({ content: "❌ قادة الشرطة أو العصابة فقط يمكنهم إنهاء الحرب.", ephemeral: true });
+
+        warEntry.status = "ended";
+        saveData(db);
+
+        const gangData = db.gangs[gangId];
+        const gangName = gangData ? gangData.name : "العصابة";
+
+        let winner = "تعادل";
+        if (warEntry.policeScore > warEntry.gangScore) winner = "🚔 الشرطة";
+        else if (warEntry.gangScore > warEntry.policeScore) winner = `🔫 عصابة ${gangName}`;
+
+        const participantsList = Object.values(warEntry.participants || {});
+        const topPolice = participantsList.filter(p => p.team === "الشرطة").sort((a, b) => b.points - a.points).slice(0, 3);
+        const topGang = participantsList.filter(p => p.team === gangName).sort((a, b) => b.points - a.points).slice(0, 3);
+
+        const policeTopText = topPolice.length > 0 ? topPolice.map((p, index) => `${index + 1}. **${p.name}**: \`${p.points}\` نقطة`).join("\n") : "لا يوجد مشاركون";
+        const gangTopText = topGang.length > 0 ? topGang.map((p, index) => `${index + 1}. **${p.name}**: \`${p.points}\` نقطة`).join("\n") : "لا يوجد مشاركون";
+
+        const endEmbed = new EmbedBuilder()
+          .setTitle("🏁 انتهت المعركة بين الشرطة والعصابة!")
+          .setDescription(
+            `🏆 **المنتصر:** ${winner}\n\n📊 **النتيجة النهائية:**\n🚔 **الشرطة**: \`${warEntry.policeScore}\` نقطة\n🔫 **${gangName}**: \`${warEntry.gangScore}\` نقطة\n\n` +
+            `🎖️ **أكثر أعضاء الشرطة تسجيلاً للنقاط:**\n${policeTopText}\n\n🎖️ **أكثر أعضاء العصابة (${gangName}) تسجيلاً للنقاط:**\n${gangTopText}`
+          )
+          .setColor(0x808080);
+
+        return interaction.update({ embeds: [endEmbed], components: [] });
+      }
+    }
+
+  } catch (error) {
+    console.error("Button Error:", error);
+    if (!interaction.replied && !interaction.deferred) {
+      await interaction.reply({ content: "❌ حدث خطأ.", ephemeral: true }).catch(() => {});
+    }
+  }
+});
+
+setInterval(async () => {
+  try {
+    const db = dbInit(getData());
+    let changed = false;
+
+    for (const [id, jail] of Object.entries(db.jail)) {
+      if (Date.now() >= jail.ends) {
+        try {
+          const guild = client.guilds.cache.first();
+          if (guild) {
+            const member = await guild.members.fetch(id).catch(() => null);
+            if (member) {
+              await member.roles.set(jail.roles);
+            }
+          }
+          delete db.jail[id];
+          changed = true;
+        } catch (e) {
+          console.error("Jail Error:", e);
+        }
+      }
+    }
+
+    if (changed) saveData(db);
+  } catch (e) {
+    console.error("Auto Jail Error:", e);
+  }
+}, 30000);
+
+if (!process.env.TOKEN) {
+  console.error("❌ TOKEN غير موجود في Environment Variables.");
+  process.exit(1);
+}
+
+client.login(process.env.TOKEN);
+
+    
+        
+        
+
+      
+        
