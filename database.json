@@ -1,0 +1,208 @@
+const { Client, GatewayIntentBits, SlashCommandBuilder, REST, Routes, EmbedBuilder } = require('discord.js');
+const fs = require('fs');
+
+// إعداد البوت مع الصلاحيات المطلوبة
+const client = new Client({
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent,
+    GatewayIntentBits.GuildMembers
+  ]
+});
+
+// ملف حفظ البيانات
+const DB_FILE = './database.json';
+let db = { users: {} };
+
+if (fs.existsSync(DB_FILE)) {
+  try {
+    db = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
+    if (!db.users) db.users = {};
+  } catch (e) {
+    console.log('خطأ في قراءة قاعدة البيانات، يتم الإنشاء من جديد.');
+  }
+}
+
+function saveData() {
+  fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2));
+}
+
+function formatMoney(n) {
+  return Number(n || 0).toLocaleString();
+}
+
+const TOKEN = process.env.DISCORD_TOKEN;
+
+// إعدادات رتب الرواتب والأسعار
+const ROLES_CONFIG = {
+  leaderRoleId: '1541482535454777456',
+  leaderAmount: 45000,
+  
+  deputyRoleId: '1541482645009989642',
+  deputyAmount: 30000,
+  
+  policeRoleId: '1541482824492650576',
+  policeAmount: 15000
+};
+
+// قائمة متجر الشرطة (الأغراض المتاحة للشراء)
+const POLICE_SHOP = [
+  { id: 'taser', name: '⚡ صاعق كهربائي (تلايزر)', price: 10000, desc: 'أداة سريعة لشل حركة المشتبه بهم.' },
+  { id: 'vest', name: '🛡️ درع رصاص تكتيكي ثقيل', price: 25000, desc: 'يحميك أثناء الاشتباكات الخطرة.' },
+  { id: 'glock', name: '🔫 مسدس بيرتا 9مم', price: 50000, desc: 'سلاح شخصي مع مخازن إضافية.' },
+  { id: 'shotgun', name: '💥 شوتجان اقتحام', price: 90000, desc: 'سلاح قوي لفتح الأبواب والمداهمات.' },
+  { id: 'm4', name: '🇷🇺 بندقية هجومية M4A1', price: 150000, desc: 'للمهام العسكرية والأمنية الكبرى.' },
+  { id: 'k9', name: '🐕 كلب بوليسي مدرب (K9)', price: 200000, desc: 'يساعدك في البحث عن المجرمين والمخدرات.' },
+  { id: 'charger', name: '🚔 سيارة شرطة دودج تشارجر', price: 350000, desc: 'سيارة دورية سريعة ومطورة للمطاردات.' },
+  { id: 'helicopter', name: '🚁 طائرة مروحية أمنية (Maverick)', price: 1000000, desc: 'للمراقبة الجوية وتغطية الدوريات من الأعلى.' }
+];
+
+// تعريف الأوامر التي تحتاج لوحة تحكم (/shop, /buy, /balance)
+const commands = [
+  new SlashCommandBuilder().setName('shop').setDescription('عرض متجر الشرطة لشراء المعدات والأدوات'),
+  new SlashCommandBuilder()
+    .setName('buy')
+    .setDescription('شراء غرض من متجر الشرطة')
+    .addStringOption(option => 
+      option.setName('item')
+        .setDescription('اختر الغرض المراد شراؤه')
+        .setRequired(true)
+        .addChoices(
+          ...POLICE_SHOP.map(i => ({ name: `${i.name} ($${formatMoney(i.price)})`, value: i.id }))
+        )
+    ),
+  new SlashCommandBuilder().setName('balance').setDescription('عرض رصيدك الحالي في المحفظة والبنك')
+].map(command => command.toJSON());
+
+client.once('ready', async () => {
+  console.log(`Logged in as ${client.user.tag}!`);
+
+  // تسجيل الأوامر
+  const rest = new REST({ version: '10' }).setToken(TOKEN);
+  try {
+    await rest.put(Routes.applicationCommands(client.user.id), { body: commands });
+    console.log('تم تسجيل الأوامر بنجاح.');
+  } catch (error) {
+    console.error(error);
+  }
+
+  // نظام الراتب التلقائي كل ساعة
+  setInterval(() => {
+    distributeAutomaticSalaries();
+  }, 60 * 60 * 1000);
+});
+
+// دالة توزيع الرواتب تلقائياً
+async function distributeAutomaticSalaries() {
+  for (const [guildId, guild] of client.guilds.cache) {
+    try {
+      await guild.members.fetch();
+      for (const [userId, member] of guild.members.cache) {
+        if (member.user.bot) continue;
+        if (!db.users[userId]) db.users[userId] = { balance: 0, bank: 0, inventory: [] };
+
+        let earned = 0;
+        let rankTitle = '';
+
+        if (member.roles.cache.has(ROLES_CONFIG.leaderRoleId)) {
+          earned = ROLES_CONFIG.leaderAmount;
+          rankTitle = '👑 قائد الشرطة';
+        } else if (member.roles.cache.has(ROLES_CONFIG.deputyRoleId)) {
+          earned = ROLES_CONFIG.deputyAmount;
+          rankTitle = '⭐ نائب الشرطة';
+        } else if (member.roles.cache.has(ROLES_CONFIG.policeRoleId)) {
+          earned = ROLES_CONFIG.policeAmount;
+          rankTitle = '👮‍♂️ الشرطي';
+        }
+
+        if (earned > 0) {
+          db.users[userId].balance += earned;
+          const embed = new EmbedBuilder()
+            .setTitle("💰 راتب الساعات الحكومي")
+            .setDescription(`لقد استلمت راتبك الساعي بصفتك **[${rankTitle}]**!`)
+            .addFields(
+              { name: 'المبلغ المضاف', value: `**$${formatMoney(earned)}**`, inline: true },
+              { name: 'رصيد المحفظة', value: `**$${formatMoney(db.users[userId].balance)}**`, inline: true }
+            )
+            .setColor(0x00ff00)
+            .setTimestamp();
+
+          try { await member.send({ embeds: [embed] }); } catch (e) {}
+        }
+      }
+    } catch (err) {}
+  }
+  saveData();
+}
+
+// معالجة الأوامر والتفاعلات
+client.on('interactionCreate', async interaction => {
+  if (!interaction.isChatInputCommand()) return;
+
+  const userId = interaction.user.id;
+  if (!db.users[userId]) db.users[userId] = { balance: 0, bank: 0, inventory: [] };
+  if (!db.users[userId].inventory) db.users[userId].inventory = [];
+
+  const { commandName } = interaction;
+
+  // التحقق هل هو شرطي أو له رتبة بالسيرفر قبل استخدام المتجر
+  const isPolice = interaction.member.roles.cache.has(ROLES_CONFIG.leaderRoleId) ||
+                   interaction.member.roles.cache.has(ROLES_CONFIG.deputyRoleId) ||
+                   interaction.member.roles.cache.has(ROLES_CONFIG.policeRoleId);
+
+  // 1. أمر عرض المتجر (/shop)
+  if (commandName === 'shop') {
+    const embed = new EmbedBuilder()
+      .setTitle("🛒 متجر المعدات العسكرية والشرطة")
+      .setDescription("استخدم أمر `/buy` لاختيار وشراء ما تحتاجه لتطوير معداتك ميدانياً:")
+      .setColor(0x0099ff);
+
+    POLICE_SHOP.forEach(item => {
+      embed.addFields({ name: `${item.name}`, value: `السعر: **$${formatMoney(item.price)}**\nالوصف: ${item.desc}`, inline: false });
+    });
+
+    return interaction.reply({ embeds: [embed] });
+  }
+
+  // 2. أمر الشراء (/buy)
+  if (commandName === 'buy') {
+    if (!isPolice) {
+      return interaction.reply({ content: '❌ عذراً، متجر المعدات مخصص لرجال الشرطة والقيادة فقط!', ephemeral: true });
+    }
+
+    const itemId = interaction.options.getString('item');
+    const item = POLICE_SHOP.find(i => i.id === itemId);
+
+    if (!item) return interaction.reply({ content: '❌ هذا الغرض غير موجود في المتجر.', ephemeral: true });
+
+    if (db.users[userId].balance < item.price) {
+      return interaction.reply({ content: `❌ لا تمتلك ما يكفي من المال لشراء **${item.name}**! رصيدك الحالي: **$${formatMoney(db.users[userId].balance)}**`, ephemeral: true });
+    }
+
+    db.users[userId].balance -= item.price;
+    db.users[userId].inventory.push(item.name);
+    saveData();
+
+    return interaction.reply(`✅ مبروك! لقد قمت بنجاح بشراء **${item.name}** مقابل **$${formatMoney(item.price)}** وتم خصمها من محفظتك.`);
+  }
+
+  // 3. أمر عرض الرصيد (/balance)
+  if (commandName === 'balance') {
+    const userBal = db.users[userId].balance;
+    const userBank = db.users[userId].bank || 0;
+
+    const embed = new EmbedBuilder()
+      .setTitle(`💳 حساب الشخصي لـ ${interaction.user.username}`)
+      .addFields(
+        { name: '💵 الكاش (المحفظة)', value: `**$${formatMoney(userBal)}**`, inline: true },
+        { name: '🏦 البنك', value: `**$${formatMoney(userBank)}**`, inline: true },
+        { name: '🎒 الأغراض المشتراة', value: db.users[userId].inventory.length > 0 ? db.users[userId].inventory.join(', ') : 'لا توجد أغراض', inline: false }
+      )
+      .setColor(0xffd700);
+
+    return interaction.reply({ embeds: [embed] });
+  }
+});
+
+client.login(TOKEN);
