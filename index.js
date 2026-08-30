@@ -2374,8 +2374,8 @@ client.on(
       }
 
       // =========================
-      // LEAVE GANG
-      // =========================
+// LEAVE GANG
+// =========================
 
 if (
   interaction.commandName === "leavegang"
@@ -2425,8 +2425,6 @@ if (
     ephemeral: true
   });
 }
-  });
-}
 
 // =========================
 // WANTED
@@ -2441,10 +2439,14 @@ if (interaction.commandName === "wanted") {
     });
   }
 
-  const target = interaction.options.getUser("user");
-  const reason = interaction.options.getString("reason");
+  const target =
+    interaction.options.getUser("user");
 
-  const targetData = user(db, target.id);
+  const reason =
+    interaction.options.getString("reason");
+
+  const targetData =
+    user(db, target.id);
 
   targetData.wanted = true;
   targetData.wantedReason = reason;
@@ -2460,12 +2462,20 @@ if (interaction.commandName === "wanted") {
 }
 
 } catch (error) {
-} catch (error) {
-  console.error("Interaction Error:", error);
 
-  if (!interaction.replied && !interaction.deferred) {
+  console.error(
+    "Interaction Error:",
+    error
+  );
+
+  if (
+    !interaction.replied &&
+    !interaction.deferred
+  ) {
+
     await interaction.reply({
-      content: "❌ حدث خطأ أثناء تنفيذ الأمر.",
+      content:
+        "❌ حدث خطأ أثناء تنفيذ الأمر.",
       ephemeral: true
     }).catch(() => {});
   }
