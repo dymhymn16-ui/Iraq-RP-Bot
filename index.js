@@ -2385,7 +2385,6 @@ client.on(
           gangOf(db, id);
 
         if (!result) {
-if (!result) {
   return interaction.reply({
     content: "❌ أنت لست منضمًا إلى أي عصابة.",
     ephemeral: true
