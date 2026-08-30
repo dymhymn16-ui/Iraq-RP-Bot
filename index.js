@@ -1208,6 +1208,7 @@ client.on("interactionCreate", async interaction => {
          if (!result.gang.storage) result.gang.storage = {};
 
 
+
     if (type === "store") {
       reward = Math.floor(Math.random() * 5000);
       result.gang.bank += reward;
