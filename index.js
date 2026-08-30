@@ -1,17 +1,24 @@
-const {
-  Client,
-  GatewayIntentBits,
-  EmbedBuilder,
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-  SlashCommandBuilder,
-  REST,
-  Routes
-} = require("discord.js");
-
+const { Client, GatewayIntentBits, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, SlashCommandBuilder, REST, Routes } = require("discord.js");
 const { getData, saveData } = require("./database");
 const config = require("./config");
+
+
+
+
+
+
+  
+  
+  
+  
+
+  
+  
+
+
+
+
+
 
 const client = new Client({
   intents: [
