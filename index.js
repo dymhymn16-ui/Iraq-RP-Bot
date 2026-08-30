@@ -2460,7 +2460,43 @@ if (interaction.commandName === "wanted") {
     ephemeral: false
   });
 }
+// =========================
+// UNWANTED
+// =========================
 
+if (interaction.commandName === "unwanted") {
+
+  if (!police(member)) {
+    return interaction.reply({
+      content: "❌ هذا الأمر مخصص للشرطة فقط.",
+      ephemeral: true
+    });
+  }
+
+  const target =
+    interaction.options.getUser("user");
+
+  const targetData =
+    user(db, target.id);
+
+  if (!targetData.wanted) {
+    return interaction.reply({
+      content: "❌ هذا العضو ليس مطلوباً.",
+      ephemeral: true
+    });
+  }
+
+  targetData.wanted = false;
+  targetData.wantedReason = null;
+
+  saveData(db);
+
+  return interaction.reply({
+    content:
+      `✅ تمت إزالة المطلوبية عن ${target}.`,
+    ephemeral: false
+  });
+    }
 } catch (error) {
 
   console.error(
