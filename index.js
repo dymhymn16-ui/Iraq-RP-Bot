@@ -1204,7 +1204,7 @@ client.on("interactionCreate", async interaction => {
         return interaction.update({ content: "❌ فشلت عملية السرقة! حاول مرة أخرى لاحقاً.", embeds: [], components: [] });
 
 
-      }
+      
 
       
          if (!result.gang.storage) result.gang.storage = {};
