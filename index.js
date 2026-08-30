@@ -2377,60 +2377,69 @@ client.on(
       // LEAVE GANG
       // =========================
 
-      if (
-        interaction.commandName === "leavegang"
-      ) {
+if (
+  interaction.commandName === "leavegang"
+) {
 
-        const result =
-          gangOf(db, id);
+  const result = gangOf(db, id);
 
-        if (!result) {
-  return interaction.reply({
-    content: "❌ أنت لست منضمًا إلى أي عصابة.",
-    ephemeral: true
-  });
-}
-
-if (result.gang.leader === id) {
-  return interaction.reply({
-    content: "❌ الزعيم لا يستطيع مغادرة العصابة. استخدم `/disbandgang` إذا أردت حل العصابة.",
-    ephemeral: true
-  });
-}
-
-result.gang.members = result.gang.members.filter(
-  memberId => memberId !== id
-);
-
-if (result.gang.deputy === id) {
-  result.gang.deputy = null;
-}
-
-await takeRole(member, config.roles.gangMember);
-await takeRole(member, config.roles.gangDeputy);
-
-saveData(db);
-
-return interaction.reply({
-  content: `✅ غادرت عصابة **${result.gang.name}** بنجاح.`,
-  ephemeral: true
-});
-      }
-    }
-  } catch (error) {
-    console.error("Interaction Error:", error);
-
-    if (!interaction.replied && !interaction.deferred) {
-      await interaction.reply({
-        content: "❌ حدث خطأ أثناء تنفيذ الأمر.",
-        ephemeral: true
-      }).catch(() => {});
-    }
+  if (!result) {
+    return interaction.reply({
+      content: "❌ أنت لست منضمًا إلى أي عصابة.",
+      ephemeral: true
+    });
   }
+
+  if (result.gang.leader === id) {
+    return interaction.reply({
+      content:
+        "❌ الزعيم لا يستطيع مغادرة العصابة. استخدم `/disbandgang` إذا أردت حل العصابة.",
+      ephemeral: true
+    });
+  }
+
+  result.gang.members =
+    result.gang.members.filter(
+      memberId => memberId !== id
+    );
+
+  if (result.gang.deputy === id) {
+    result.gang.deputy = null;
+  }
+
+  await takeRole(
+    member,
+    config.roles.gangMember
+  );
+
+  await takeRole(
+    member,
+    config.roles.gangDeputy
+  );
+
+  saveData(db);
+
+  return interaction.reply({
+    content:
+      `✅ غادرت عصابة **${result.gang.name}** بنجاح.`,
+    ephemeral: true
+  });
+}
+
+} catch (error) {
+  console.error("Interaction Error:", error);
+
+  if (!interaction.replied && !interaction.deferred) {
+    await interaction.reply({
+      content: "❌ حدث خطأ أثناء تنفيذ الأمر.",
+      ephemeral: true
+    }).catch(() => {});
+  }
+}
 });
 
 // =========================
 // تشغيل البوت
 // =========================
 
-client.login(process.env.TOKEN);          
+client.login(process.env.TOKEN);
