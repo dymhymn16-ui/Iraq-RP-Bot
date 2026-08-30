@@ -1205,7 +1205,8 @@ client.on("interactionCreate", async interaction => {
       }
 
       
-         if (!result.gang.storage) result.gang.storage = { weed: 0, stolen: 0, weapons: 0 };
+         if (!result.gang.storage) result.gang.storage = {};
+
 
     if (type === "store") {
       reward = Math.floor(Math.random() * 5000);
