@@ -2425,7 +2425,63 @@ if (
     ephemeral: true
   });
 }
+      // =========================
+      // UNJAIL
+      // =========================
 
+      if (
+        interaction.commandName === "unjail"
+      ) {
+
+        if (!police(member)) {
+          return interaction.reply({
+            content: "❌ هذا الأمر مخصص للشرطة فقط.",
+            ephemeral: true
+          });
+        }
+
+        const target =
+          interaction.options.getMember("user");
+
+        if (!target) {
+          return interaction.reply({
+            content: "❌ لم يتم العثور على العضو.",
+            ephemeral: true
+          });
+        }
+
+        const jailData =
+          db.jail[target.id];
+
+        if (!jailData) {
+          return interaction.reply({
+            content: "❌ هذا العضو ليس مسجوناً.",
+            ephemeral: true
+          });
+        }
+
+        const oldRoles =
+          Array.isArray(jailData.roles)
+            ? jailData.roles
+            : [];
+
+        const validRoles =
+          oldRoles.filter(
+            roleId => roleId !== interaction.guild.id
+          );
+
+        await target.roles.set(validRoles);
+
+        delete db.jail[target.id];
+
+        saveData(db);
+
+        return interaction.reply({
+          content:
+            `🔓 تم فك سجن ${target} بنجاح.`,
+          ephemeral: false
+        });
+    }
 // =========================
 // WANTED
 // =========================
