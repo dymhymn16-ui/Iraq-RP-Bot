@@ -1204,32 +1204,50 @@ client.on("interactionCreate", async interaction => {
         return interaction.update({ content: "❌ فشلت عملية السرقة! حاول مرة أخرى لاحقًا.", embeds: [], components: [] });
       }
 
-      let reward = 0;
-      if (!result.gang.storage) result.gang.storage = { weed: 0, stolen: 0, weapons: 0 };
+      
+         if (!result.gang.storage) result.gang.storage = { weed: 0, stolen: 0, weapons: 0 };
 
-      if (type === "store") {
-        reward = Math.floor(Math.random() * 5000) + 2000;
-        result.gang.bank += reward;
-        result.gang.storage.stolen++;
-      }
-      if (type === "bank") {
-        reward = Math.floor(Math.random() * 20000) + 10000;
-        result.gang.bank += reward;
-        result.gang.storage.stolen += 5;
-      }
-          if (type === "drugs") {
+    if (type === "store") {
+      reward = Math.floor(Math.random() * 5000);
+      result.gang.bank += reward;
+      result.gang.storage.stolen++;
+    }
+
+    if (type === "bank") {
+      reward = Math.floor(Math.random() * 20000);
+      result.gang.bank += reward;
+      result.gang.storage.stolen += 5;
+    }
+
+    if (type === "drugs") {
       const weed = Math.floor(Math.random() * 10) + 5;
       result.gang.storage.weed += weed;
     }
+ 
 
-    if (action === "p" || action === "g") {
-      const gangId = parts[2];
-      const targetId = parts[3];
-      const userId = interaction.user.id;
-      const userName = interaction.user.username;
+      
+        
+        
+        
+      
+    
+        
+    
+        
+      
+          
+      
+      
+  
 
-      const lastHit = commandCooldowns.get(userId) || 0;
-      if (Date.now() - lastHit < 5000) {
+    
+      
+      
+      
+      
+
+      
+    
         const remaining = Math.ceil((5000 - (Date.now() - lastHit)) / 1000);
         return interaction.reply({ content: `⏳ يجب عليك الانتظار **${remaining} ثوانٍ** قبل تنفيذ الهجوم التالي.`, ephemeral: true });
       }
