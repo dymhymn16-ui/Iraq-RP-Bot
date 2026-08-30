@@ -353,7 +353,7 @@ function setupAutoWars(clientInstance) {
           const currentDb = dbInit(getData());
           const currentWar = currentDb.wars[warId];
           if (!currentWar || currentWar.status !== "recruiting") {
-            clearInterval(countdownInterval);
+            clearIntrval(countdownInterval);
             return;
           }
 
@@ -600,7 +600,7 @@ client.on("interactionCreate", async interaction => {
       if (!result) {
         const embed = new EmbedBuilder()
           .setTitle("❌ خطأ في العملية")
-          .setDescription("عذراً، يجب أن تكون منضماً إلى عصابة لتتمكن من تخزين الحشيش في مخزن العصابة!")
+          .setDescription("عذراً، يجب أنwكون منضماً إلى عصابة لتتمكن من تخزين الحشيش في مخزن العصابة!")
           .setColor(0xff0000);
         return interaction.reply({ embeds: [embed], ephemeral: true });
       }
@@ -757,7 +757,7 @@ client.on("interactionCreate", async interaction => {
       if (!result) return interaction.reply({ content: "❌ أنت لست بعصابة.", ephemeral: true });
 
       const g = result.gang;
-      if (!g.storage) g.storage = { weed: 0, stolen: 0, weapons: 0 };
+      if (!g.storage) g.storage = { weed: 0, stolen: 0, weaponw 0 };
       const embed = new EmbedBuilder()
         .setTitle(`🔫 معلومات عصابة ${g.name}`)
         .addFields(
@@ -827,7 +827,7 @@ client.on("interactionCreate", async interaction => {
       if (result.gang.deputy === id) result.gang.deputy = null;
 
       await takeRole(member, config.roles.gangMember);
-      await takeRole(member, config.roles.gangDeputy);
+      await takeRole(meweeer, config.roles.gangDeputy);
       saveData(db);
 
       return interaction.reply("✅ غادرت العصابة.");
@@ -969,8 +969,8 @@ client.on("interactionCreate", async interaction => {
 
       if (!user(db, target.id).wanted) return interaction.reply({ content: "❌ هذا اللاعب ليس مطلوبًا.", ephemeral: true });
 
-      user(db, target.id).wanted = false;
-      user(db, target.id).wantedReason = null;
+      use(db, target.id).wanted = false;
+      user(db, target.id).wantedReawweon = null;
       saveData(db);
 
       return interaction.reply(`🚔 تم القبض على ${target}.`);
@@ -1058,7 +1058,7 @@ function updateActiveWarMessage(message, warData, gangName, clientInstance) {
   );
 
   const rows = [];
-  if (policeButtons.length > 0) {
+we if (policeButtons.length > 0) {
     for (let i = 0; i < policeButtons.length; i += 5) {
       rows.push(new ActionRowBuilder().addComponents(policeButtons.slice(i, i + 5)));
     }
@@ -1217,114 +1217,116 @@ client.on("interactionCreate", async interaction => {
         result.gang.bank += reward;
         result.gang.storage.stolen += 5;
       }
-      if (type === "drugs") {
-        const weed = Math.floor(Math.random() * 10) + 5;
-        result.gang.storage.weed += wee
-              if (action === "p" || action === "g") {
-        const gangId = parts[2];
-        const targetId = parts[3];
-        const userId = interaction.user.id;
-        const userName = interaction.user.username;
+          if (type === "drugs") {
+      const weed = Math.floor(Math.random() * 10) + 5;
+      result.gang.storage.weed += weed;
+    }
 
-        const lastHit = commandCooldowns.get(userId) || 0;
-        if (Date.now() - lastHit < 5000) {
-          const remaining = Math.ceil((5000 - (Date.now() - lastHit)) / 1000);
-          return interaction.reply({ content: `⏳ يجب عليك الانتظار **${remaining} ثوانٍ** قبل تنفيذ الهجوم التالي.`, ephemeral: true });
-        }
+    if (action === "p" || action === "g") {
+      const gangId = parts[2];
+      const targetId = parts[3];
+      const userId = interaction.user.id;
+      const userName = interaction.user.username;
 
-        const warEntry = Object.values(db.wars).find(w => w.gangId === gangId && w.status === "active");
-        if (!warEntry) return interaction.reply({ content: "❌ لا توجد حرب نشطة حالياً.", ephemeral: true });
-
-        const gangData = db.gangs[gangId];
-        const gangName = gangData ? gangData.name : "العصابة";
-
-        if (!warEntry.participants) warEntry.participants = {};
-
-        if (action === "p") {
-          if (!police(interaction.member) || !warEntry.policeTeam.includes(userId))
-            return interaction.reply({ content: "❌ لست مشاركاً ضمن فريق الشرطة في هذه الحرب.", ephemeral: true });
-
-          const pts = Math.floor(Math.random() * 20) + 1;
-          warEntry.policeScore += pts;
-
-          if (!warEntry.participants[userId]) warEntry.participants[userId] = { name: userName, team: "الشرطة", points: 0 };
-          warEntry.participants[userId].points += pts;
-
-          commandCooldowns.set(userId, Date.now());
-          saveData(db);
-
-          const embed = new EmbedBuilder()
-            .setTitle("🚔 هجوم أمني ناجح!")
-            .setDescription(`💥 قام ${interaction.user} بضربة ناجحة ضد <@${targetId}> وكسب **${pts}** نقطة لصالح الشرطة!`)
-            .setColor(0x0000ff);
-
-          return interaction.update({ embeds: [embed] });
-        }
-
-        if (action === "g") {
-          const userGang = gangOf(db, userId);
-          if (!userGang || userGang.id !== gangId || !warEntry.gangTeam.includes(userId))
-            return interaction.reply({ content: "❌ لست مشاركاً ضمن فريق العصابة في هذه الحرب.", ephemeral: true });
-
-          const pts = Math.floor(Math.random() * 20) + 1;
-          warEntry.gangScore += pts;
-
-          if (!warEntry.participants[userId]) warEntry.participants[userId] = { name: userName, team: gangName, points: 0 };
-          warEntry.participants[userId].points += pts;
-
-          commandCooldowns.set(userId, Date.now());
-          saveData(db);
-
-          const embed = new EmbedBuilder()
-            .setTitle("🔫 هجوم مضاد للعصابة")
-            .setDescription(`💥 قام ${interaction.user} بضربة ناجحة وكسب **${pts}** نقطة لصالح العصابة!`)
-            .setColor(0xff0000);
-
-          return interaction.update({ embeds: [embed] });
-        }
+      const lastHit = commandCooldowns.get(userId) || 0;
+      if (Date.now() - lastHit < 5000) {
+        const remaining = Math.ceil((5000 - (Date.now() - lastHit)) / 1000);
+        return interaction.reply({ content: `⏳ يجب عليك الانتظار **${remaining} ثوانٍ** قبل تنفيذ الهجوم التالي.`, ephemeral: true });
       }
 
-      if (action === "manual" && parts[2] === "end") {
-        const gangId = parts[3];
-        const userId = interaction.user.id;
+      const warEntry = Object.values(db.wars).find(w => w.gangId === gangId && w.status === "active");
+      if (!warEntry) return interaction.reply({ content: "❌ لا توجد حرب نشطة حالياً.", ephemeral: true });
 
-        const warEntry = Object.values(db.wars).find(w => w.gangId === gangId && w.status === "active");
-        if (!warEntry) return interaction.reply({ content: "❌ لا توجد حرب نشطة.", ephemeral: true });
+      const gangData = db.gangs[gangId];
+      const gangName = gangData ? gangData.name : "العصابة";
 
-        if (!policeLeader(interaction.member) && !gangManagement(db, userId))
-          return interaction.reply({ content: "❌ قيادة الشرطة أو العصابة فقط يمكنهم إنهاء الحرب.", ephemeral: true });
+      if (!warEntry.participants) warEntry.participants = {};
 
-        warEntry.status = "ended";
+      if (action === "p") {
+        if (!police(interaction.member) || !warEntry.policeTeam.includes(userId))
+          return interaction.reply({ content: "❌ لست مشاركاً ضمن فريق الشرطة في هذه الحرب.", ephemeral: true });
+
+        const pts = Math.floor(Math.random() * 20) + 1;
+        warEntry.policeScore += pts;
+
+        if (!warEntry.participants[userId]) warEntry.participants[userId] = { name: userName, team: "الشرطة", points: 0 };
+        warEntry.participants[userId].points += pts;
+
+        commandCooldowns.set(userId, Date.now());
         saveData(db);
 
-        const gangData = db.gangs[gangId];
-        const gangName = gangData ? gangData.name : "العصابة";
+        const embed = new EmbedBuilder()
+          .setTitle("🚔 هجوم أمني ناجح!")
+          .setDescription(`💥 قام ${interaction.user} بضربة ناجحة ضد <@${targetId}> وكسب **${pts}** نقطة لصالح الشرطة!`)
+          .setColor(0x0000ff);
 
-        let winner = "تعادل";
-        if (warEntry.policeScore > warEntry.gangScore) winner = "🚔 الشرطة";
-        else if (warEntry.gangScore > warEntry.policeScore) winner = `🔫 عصابة ${gangName}`;
-
-        const participantsList = Object.values(warEntry.participants || {});
-        const topPolice = participantsList.filter(p => p.team === "الشرطة").sort((a, b) => b.points - a.points);
-        const topGang = participantsList.filter(p => p.team === gangName).sort((a, b) => b.points - a.points);
-
-        const policeTopText = topPolice.length > 0 ? topPolice.map((p, index) => `${index + 1}. **${p.name}**: ${p.points} نقطة`).join("\n") : "لا توجد مشاركات مسجلة";
-        const gangTopText = topGang.length > 0 ? topGang.map((p, index) => `${index + 1}. **${p.name}**: ${p.points} نقطة`).join("\n") : "لا توجد مشاركات مسجلة";
-
-        const endEmbed = new EmbedBuilder()
-          .setTitle("🏁 انتهت المعركة بين الشرطة والعصابة")
-          .setDescription(
-            `🏆 **المنتصر:** ${winner}\n\n` +
-            `📊 **النتيجة النهائية:**\n` +
-            `🚔 الشرطة: \`${warEntry.policeScore}\`\n` +
-            `🔫 عصابة ${gangName}: \`${warEntry.gangScore}\`\n\n` +
-            `👑 **أكثر أعضاء الشرطة تسجيلاً للنقاط:**\n${policeTopText}\n\n` +
-            `🏆 **أكثر أعضاء العصابة تسجيلاً للنقاط:**\n${gangTopText}`
-          )
-          .setColor(0x808080);
-
-        return interaction.update({ embeds: [endEmbed], components: [] });
+        return interaction.update({ embeds: [embed] });
       }
+
+      if (action === "g") {
+        const userGang = gangOf(db, userId);
+        if (!userGang || userGang.id !== gangId || !warEntry.gangTeam.includes(userId))
+          return interaction.reply({ content: "❌ لست مشاركاً ضمن فريق العصابة في هذه الحرب.", ephemeral: true });
+
+        const pts = Math.floor(Math.random() * 20) + 1;
+        warEntry.gangScore += pts;
+
+        if (!warEntry.participants[userId]) warEntry.participants[userId] = { name: userName, team: gangName, points: 0 };
+        warEntry.participants[userId].points += pts;
+
+        commandCooldowns.set(userId, Date.now());
+        saveData(db);
+
+        const embed = new EmbedBuilder()
+          .setTitle("🔫 هجوم مضاد للعصابة")
+          .setDescription(`💥 قام ${interaction.user} بضربة ناجحة وكسب **${pts}** نقطة لصالح العصابة!`)
+          .setColor(0xff0000);
+
+        return interaction.update({ embeds: [embed] });
+      }
+    }
+
+    if (action === "manual" && parts[2] === "end") {
+      const gangId = parts[3];
+      const userId = interaction.user.id;
+
+      const warEntry = Object.values(db.wars).find(w => w.gangId === gangId && w.status === "active");
+      if (!warEntry) return interaction.reply({ content: "❌ لا توجد حرب نشطة.", ephemeral: true });
+
+      if (!policeLeader(interaction.member) && !gangManagement(db, userId))
+        return interaction.reply({ content: "❌ قيادة الشرطة أو العصابة فقط يمكنهم إنهاء الحرب.", ephemeral: true });
+
+      warEntry.status = "ended";
+      saveData(db);
+
+      const gangData = db.gangs[gangId];
+      const gangName = gangData ? gangData.name : "العصابة";
+
+      let winner = "تعادل";
+      if (warEntry.policeScore > warEntry.gangScore) winner = "🚔 الشرطة";
+      else if (warEntry.gangScore > warEntry.policeScore) winner = `🔫 عصابة ${gangName}`;
+
+      const participantsList = Object.values(warEntry.participants || {});
+      const topPolice = participantsList.filter(p => p.team === "الشرطة").sort((a, b) => b.points - a.points);
+      const topGang = participantsList.filter(p => p.team === gangName).sort((a, b) => b.points - a.points);
+
+      const policeTopText = topPolice.length > 0 ? topPolice.map((p, index) => `${index + 1}. **${p.name}**: ${p.points} نقطة`).join("\n") : "لا توجد مشاركات مسجلة";
+      const gangTopText = topGang.length > 0 ? topGang.map((p, index) => `${index + 1}. **${p.name}**: ${p.points} نقطة`).join("\n") : "لا توجد مشاركات مسجلة";
+
+      const endEmbed = new EmbedBuilder()
+        .setTitle("🏁 انتهت المعركة بين الشرطة والعصابة")
+        .setDescription(
+          `🏆 **المنتصر:** ${winner}\n\n` +
+          `📊 **النتيجة النهائية:**\n` +
+          `🚔 الشرطة: \`${warEntry.policeScore}\`\n` +
+          `🔫 عصابة ${gangName}: \`${warEntry.gangScore}\`\n\n` +
+          `👑 **أكثر أعضاء الشرطة تسجيلاً للنقاط:**\n${policeTopText}\n\n` +
+          `🏆 **أكثر أعضاء العصابة تسجيلاً للنقاط:**\n${gangTopText}`
+        )
+        .setColor(0x808080);
+
+      return interaction.update({ embeds: [endEmbed], components: [] });
+    }
     }
   } catch (error) {
     console.error("Button Error:", error);
@@ -1364,3 +1366,140 @@ setInterval(async () => {
 }, 30000);
 
 client.login(process.env.TOKEN);
+        
+        
+        
+        
+      
+        
+
+    
+      
+          
+          
+        
+
+        
+      
+
+        
+        
+
+        
+
+        
+          
+            
+
+          
+          
+
+          
+          
+
+          
+          
+
+          
+            
+            
+            
+
+          
+        
+
+        
+          
+          
+        
+
+          
+          
+
+          
+          
+
+        
+          
+
+          
+            
+            
+            
+
+          
+        
+      
+
+      
+      
+        
+
+        
+        
+
+        
+          
+
+        
+        
+
+        
+        
+
+      
+    
+      
+
+        
+        
+        
+
+        
+        
+
+        
+          
+        
+            
+            
+            
+            
+            
+          
+          
+        
+
+    
+      
+    
+      
+    
+
+    
+    
+
+
+  
+  
+        
+          
+        
+            
+              
+            
+          
+        
+        
+        
+      
+    
+
+  
+      
+    
+
+  
+
+
+
