@@ -418,17 +418,15 @@ function setupAutoWars(clientInstance) {
 
           updateActiveWarMessage(response, currentWar, gangData.name, clientInstance);
 
-          setTimeout(async () => {
-            endWarAutomatically(clientInstance, warId, gangData.name);
-          }, 10 * 60 * 1000);
+     setTimeout(async () => {
+      endWarAutomatically(clientInstance, warId, gangData.name);
+    }, 10 * 60 * 1000);
 
-        } catch (e) {
-          console.error("Auto War Timer Error:", e);
-        }
-      }, 180000);
-    }
-  }, 60000);
-}
+  } catch (e) {
+    console.error("Auto War Timer Error:", e);
+  }
+}, 1800000);
+
 
 client.once("ready", async () => {
   console.log(`✅ البوت اشتغل: ${client.user.tag}`);
