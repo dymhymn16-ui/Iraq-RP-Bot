@@ -417,20 +417,14 @@ function setupAutoWars(clientInstance) {
           saveData(currentDb);
 
           updateActiveWarMessage(response, currentWar, gangData.name, clientInstance);
-
-     setTimeout(async () => {
+  setTimeout(async () => {
+    try {
       endWarAutomatically(clientInstance, warId, gangData.name);
-    }, 10 * 60 * 1000);
-
-  } catch (e) {
-    console.error("Auto War Timer Error:", e);
-  }
-}, 1800000);
-
-
-client.once("ready", async () => {
-  console.log(`✅ البوت اشتغل: ${client.user.tag}`);
-
+    } catch (e) {
+      console.error("Auto War Timer Error:", e);
+    }
+  }, 1800000);
+          } 
   try {
     const rest = new REST({ version: "10" }).setToken(process.env.TOKEN);
     await rest.put(Routes.applicationCommands(client.user.id), { body: commands });
