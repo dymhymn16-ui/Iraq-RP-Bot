@@ -2553,6 +2553,72 @@ if (interaction.commandName === "unwanted") {
     ephemeral: false
   });
     }
+   // =========================
+// ROB
+// =========================
+
+if (interaction.commandName === "rob") {
+
+  const result = gangOf(db, id);
+
+  if (!result) {
+    return interaction.reply({
+      content: "❌ هذا الأمر مخصص لأعضاء العصابات فقط.",
+      ephemeral: true
+    });
+  }
+
+  const now = Date.now();
+  const cooldown = 30 * 60 * 1000;
+
+  const lastRob =
+    db.cooldowns[`rob_${id}`] || 0;
+
+  if (now - lastRob < cooldown) {
+
+    const remaining =
+      Math.ceil(
+        (cooldown - (now - lastRob)) / 60000
+      );
+
+    return interaction.reply({
+      content:
+        `⏳ لا يمكنك تنفيذ السرقة الآن.\n` +
+        `حاول بعد **${remaining} دقيقة**.`,
+      ephemeral: true
+    });
+  }
+
+  const reward =
+    Math.floor(
+      Math.random() * 50000
+    ) + 25000;
+
+  result.gang.bank =
+    (result.gang.bank || 0) + reward;
+
+  if (!result.gang.storage) {
+    result.gang.storage = {
+      weed: 0,
+      stolen: 0,
+      weapons: 0
+    };
+  }
+
+  result.gang.storage.stolen += 1;
+
+  db.cooldowns[`rob_${id}`] = now;
+
+  saveData(db);
+
+  return interaction.reply({
+    content:
+      `🏪 **نجحت عملية السرقة!**\n\n` +
+      `💰 الأموال المسروقة: **$${money(reward)}**\n` +
+      `📦 تمت إضافة المسروقات إلى مخزن العصابة.`,
+    ephemeral: false
+  });
+      }   
 } catch (error) {
 
   console.error(
