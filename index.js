@@ -2425,7 +2425,41 @@ if (
     ephemeral: true
   });
 }
+  });
+}
 
+// =========================
+// WANTED
+// =========================
+
+if (interaction.commandName === "wanted") {
+
+  if (!police(member)) {
+    return interaction.reply({
+      content: "❌ هذا الأمر مخصص للشرطة فقط.",
+      ephemeral: true
+    });
+  }
+
+  const target = interaction.options.getUser("user");
+  const reason = interaction.options.getString("reason");
+
+  const targetData = user(db, target.id);
+
+  targetData.wanted = true;
+  targetData.wantedReason = reason;
+
+  saveData(db);
+
+  return interaction.reply({
+    content:
+      `🚨 تم جعل ${target} **مطلوباً**.\n` +
+      `📝 السبب: **${reason}**`,
+    ephemeral: false
+  });
+}
+
+} catch (error) {
 } catch (error) {
   console.error("Interaction Error:", error);
 
