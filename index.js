@@ -1717,15 +1717,10 @@ setInterval(async () => {
     saveData(db);
 
   } catch (error) {
-
-    console.error(
-      "Jail System Error:",
-      error
-    );
+    console.error("Jail System Error:", error);
   }
 
 }, 30000);
-
 
 // =========================
 // تشغيل البوت
