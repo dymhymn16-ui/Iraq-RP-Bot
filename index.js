@@ -2746,7 +2746,50 @@ if (interaction.commandName === "policekick") {
       `🚔 تم طرد ${target} من الشرطة بنجاح.`,
     ephemeral: false
   });
-}   
+}
+  // =========================
+// POLICE INVITE
+// =========================
+
+if (interaction.commandName === "policeinvite") {
+
+  if (!policeDeputy(member)) {
+    return interaction.reply({
+      content: "❌ قائد الشرطة أو النائب فقط.",
+      ephemeral: true
+    });
+  }
+
+  const target =
+    interaction.options.getMember("user");
+
+  if (!target) {
+    return interaction.reply({
+      content: "❌ لم يتم العثور على العضو.",
+      ephemeral: true
+    });
+  }
+
+  if (police(target)) {
+    return interaction.reply({
+      content: "❌ هذا العضو ضمن الشرطة بالفعل.",
+      ephemeral: true
+    });
+  }
+
+  await giveRole(
+    target,
+    config.roles.policeOfficer
+  );
+
+  saveData(db);
+
+  return interaction.reply({
+    content:
+      `🚔 تمت إضافة ${target} إلى الشرطة بنجاح.`,
+    ephemeral: false
+  });
+}    
 } catch (error) {
 
   console.error(
