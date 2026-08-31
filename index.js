@@ -2651,6 +2651,40 @@ if (interaction.commandName === "report") {
     ephemeral: false
   });
     }
+    // =========================
+// POLICE MISSIONS
+// =========================
+
+if (interaction.commandName === "policemissions") {
+
+  if (!police(member)) {
+    return interaction.reply({
+      content: "❌ هذا الأمر مخصص للشرطة فقط.",
+      ephemeral: true
+    });
+  }
+
+  const missions = [
+    "🚔 قم بدورية داخل المدينة.",
+    "🔍 ابحث عن المطلوبين.",
+    "🛡️ احمِ المناطق المهمة.",
+    "📢 استجب للبلاغات المقدمة.",
+    "🚨 ساعد في القبض على المطلوبين."
+  ];
+
+  const randomMission =
+    missions[
+      Math.floor(
+        Math.random() * missions.length
+      )
+    ];
+
+  return interaction.reply({
+    content:
+      `📋 **مهمة الشرطة:**\n\n${randomMission}`,
+    ephemeral: false
+  });
+}  
 } catch (error) {
 
   console.error(
