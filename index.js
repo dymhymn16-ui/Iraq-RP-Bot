@@ -3062,7 +3062,96 @@ if (interaction.commandName === "jail") {
       `🔒 تم سجن ${target} لمدة **${minutes} دقيقة**.`,
     ephemeral: false
   });
-}      
+}
+ // =========================
+// GANG BANK
+// =========================
+
+if (interaction.commandName === "gangbank") {
+
+  const result = gangOf(db, id);
+
+  if (!result) {
+    return interaction.reply({
+      content: "❌ أنت لست داخل عصابة.",
+      ephemeral: true
+    });
+  }
+
+  const gang = result.gang;
+
+  return interaction.reply({
+    content:
+      `🏦 **بنك العصابة**\n\n` +
+      `🔫 العصابة: **${gang.name}**\n` +
+      `💰 الرصيد: **$${money(gang.bank || 0)}**`,
+    ephemeral: false
+  });
+        }
+     // =========================
+// GANG STORAGE
+// =========================
+
+if (interaction.commandName === "gangstorage") {
+
+  const result = gangOf(db, id);
+
+  if (!result) {
+    return interaction.reply({
+      content: "❌ أنت لست داخل عصابة.",
+      ephemeral: true
+    });
+  }
+
+  const gang = result.gang;
+
+  if (!gang.storage) {
+    gang.storage = {
+      weed: 0,
+      stolen: 0,
+      weapons: 0
+    };
+  }
+
+  return interaction.reply({
+    content:
+      `📦 **مخزن العصابة**\n\n` +
+      `🔫 العصابة: **${gang.name}**\n` +
+      `🌿 الحشيش: **${gang.storage.weed} كغ**\n` +
+      `📦 المسروقات: **${gang.storage.stolen}**\n` +
+      `🔫 الأسلحة: **${gang.storage.weapons}**`,
+    ephemeral: false
+  });
+}
+   // =========================
+// MISSION
+// =========================
+
+if (interaction.commandName === "mission") {
+
+  const missions = [
+    "🚔 قم بدورية داخل المدينة.",
+    "🔍 ابحث عن أحد المطلوبين.",
+    "🛡️ احمِ إحدى المناطق المهمة.",
+    "📢 استجب لأحد البلاغات.",
+    "🚨 ساعد الشرطة في القبض على مطلوب.",
+    "🏃 أكمل مهمة داخل المدينة."
+  ];
+
+  const randomMission =
+    missions[
+      Math.floor(
+        Math.random() * missions.length
+      )
+    ];
+
+  return interaction.reply({
+    content:
+      `📋 **مهمتك اليوم**\n\n` +
+      `${randomMission}`,
+    ephemeral: false
+  });
+}   
 } catch (error) {
 
   console.error(
