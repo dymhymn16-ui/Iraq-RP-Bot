@@ -2684,7 +2684,69 @@ if (interaction.commandName === "policemissions") {
       `📋 **مهمة الشرطة:**\n\n${randomMission}`,
     ephemeral: false
   });
-}  
+}
+   // =========================
+// POLICE KICK
+// =========================
+
+if (interaction.commandName === "policekick") {
+
+  if (!policeDeputy(member)) {
+    return interaction.reply({
+      content: "❌ هذا الأمر مخصص لقائد الشرطة أو نائبه فقط.",
+      ephemeral: true
+    });
+  }
+
+  const target =
+    interaction.options.getMember("user");
+
+  if (!target) {
+    return interaction.reply({
+      content: "❌ لم يتم العثور على العضو.",
+      ephemeral: true
+    });
+  }
+
+  if (!police(target)) {
+    return interaction.reply({
+      content: "❌ هذا العضو ليس ضمن الشرطة.",
+      ephemeral: true
+    });
+  }
+
+  if (target.id === interaction.user.id) {
+    return interaction.reply({
+      content: "❌ لا يمكنك طرد نفسك.",
+      ephemeral: true
+    });
+  }
+
+  if (policeLeader(target)) {
+    return interaction.reply({
+      content: "❌ لا يمكن طرد قائد الشرطة.",
+      ephemeral: true
+    });
+  }
+
+  await takeRole(
+    target,
+    config.roles.policeOfficer
+  );
+
+  await takeRole(
+    target,
+    config.roles.policeDeputy
+  );
+
+  saveData(db);
+
+  return interaction.reply({
+    content:
+      `🚔 تم طرد ${target} من الشرطة بنجاح.`,
+    ephemeral: false
+  });
+}   
 } catch (error) {
 
   console.error(
