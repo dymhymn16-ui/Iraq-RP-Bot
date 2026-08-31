@@ -2796,6 +2796,13 @@ if (interaction.commandName === "policeinvite") {
 
 if (interaction.commandName === "policeinfo") {
 
+  if (!police(member)) {
+    return interaction.reply({
+      content: "❌ هذا الأمر مخصص للشرطة فقط.",
+      ephemeral: true
+    });
+  }
+
   const policeMembers =
     interaction.guild.members.cache.filter(
       m => police(m)
@@ -2803,33 +2810,194 @@ if (interaction.commandName === "policeinfo") {
 
   const leaders =
     policeMembers.filter(
-      m => policeLeader(m)
+      m => role(m, config.roles.policeLeader)
     );
 
   const deputies =
     policeMembers.filter(
       m =>
-        policeDeputy(m) &&
-        !policeLeader(m)
+        role(m, config.roles.policeDeputy) &&
+        !role(m, config.roles.policeLeader)
     );
 
   const officers =
     policeMembers.filter(
       m =>
         role(m, config.roles.policeOfficer) &&
-        !policeDeputy(m)
+        !role(m, config.roles.policeDeputy) &&
+        !role(m, config.roles.policeLeader)
     );
+
+  const leaderNames =
+    leaders.size > 0
+      ? leaders.map(m => `👑 ${m}`).join("\n")
+      : "لا يوجد";
+
+  const deputyNames =
+    deputies.size > 0
+      ? deputies.map(m => `⭐ ${m}`).join("\n")
+      : "لا يوجد";
+
+  const officerNames =
+    officers.size > 0
+      ? officers.map(m => `🚔 ${m}`).join("\n")
+      : "لا يوجد";
 
   const embed =
     new EmbedBuilder()
       .setTitle("🚔 معلومات الشرطة")
       .setDescription(
-        `👥 عدد أعضاء الشرطة: **${policeMembers.size}**\n\n` +
-        `👑 القادة: **${leaders.size}**\n` +
-        `⭐ النواب: **${deputies.size}**\n` +
-        `🚔 الضباط: **${officers.size}**`
+        `👥 **عدد أعضاء الشرطة:** ${policeMembers.size}`
       )
-      .setColor(0x0099ff);
+      .addFields(
+        {
+          name: `👑 القادة (${leaders.size})`,
+          value: leaderNames,
+          inline: false
+        },
+        {
+          name: `⭐ النواب (${deputies.size})`,
+          value: deputyNames,
+          inline: false
+        },
+        {
+          name: `🚔 الضباط (${officers.size})`,
+          value: officerNames,
+          inline: false
+        }
+      )
+      .setColor(0x0099ff)
+      .setTimestamp();
+
+  return interaction.reply({
+    embeds: [embed],
+    ephemeral: false
+  });
+}
+// =========================
+// CREATE GANG
+// =========================
+
+if (interaction.commandName === "creategang") {
+
+  if (police(member)) {
+    return interaction.reply({
+      content: "❌ أعضاء الشرطة لا يمكنهم إنشاء عصابة.",
+      ephemeral: true
+    });
+  }
+
+  if (gangOf(db, id)) {
+    return interaction.reply({
+      content: "❌ أنت داخل عصابة مسبقاً.",
+      ephemeral: true
+    });
+  }
+
+  const name =
+    interaction.options.getString("name");
+
+  if (!name || name.trim().length < 2) {
+    return interaction.reply({
+      content: "❌ اسم العصابة يجب أن يكون حرفين على الأقل.",
+      ephemeral: true
+    });
+  }
+
+  const gangName = name.trim();
+
+  const alreadyExists =
+    Object.values(db.gangs).some(
+      gang =>
+        gang.name &&
+        gang.name.toLowerCase() === gangName.toLowerCase()
+    );
+
+  if (alreadyExists) {
+    return interaction.reply({
+      content: "❌ اسم العصابة مستخدم بالفعل.",
+      ephemeral: true
+    });
+  }
+
+  const gid =
+    `gang_${Date.now()}`;
+
+  db.gangs[gid] = {
+    name: gangName,
+    leader: id,
+    deputy: null,
+    members: [id],
+    bank: 0,
+    storage: {
+      weed: 0,
+      stolen: 0,
+      weapons: 0
+    },
+    wins: 0,
+    losses: 0
+  };
+
+  await giveRole(
+    member,
+    config.roles.gangLeader
+  );
+
+  saveData(db);
+
+  return interaction.reply({
+    content:
+      `🔫 تم إنشاء عصابة **${gangName}** بنجاح!\n\n` +
+      `👑 الزعيم: ${interaction.user}\n` +
+      `👥 عدد الأعضاء: **1**`,
+    ephemeral: false
+  });
+}
+// =========================
+// ARREST
+// =========================
+
+if (interaction.commandName === "arrest") {
+
+  if (!police(member)) {
+    return interaction.reply({
+      content: "❌ هذا الأمر مخصص للشرطة فقط.",
+      ephemeral: true
+    });
+  }
+
+  const target =
+    interaction.options.getMember("user");
+
+  if (!target) {
+    return interaction.reply({
+      content: "❌ لم يتم العثور على العضو.",
+      ephemeral: true
+    });
+  }
+
+  const targetData =
+    user(db, target.id);
+
+  if (!targetData.wanted) {
+    return interaction.reply({
+      content: "❌ هذا العضو ليس مطلوباً.",
+      ephemeral: true
+    });
+  }
+
+  targetData.wanted = false;
+  targetData.wantedReason = null;
+
+  saveData(db);
+
+  return interaction.reply({
+    content:
+      `🚔 تم القبض على ${target} بنجاح.\n` +
+      `🔓 تمت إزالة المطلوبية عنه.`,
+    ephemeral: false
+  });
+  )      
 // =========================
 // JAIL
 // =========================
@@ -2891,8 +3059,7 @@ if (interaction.commandName === "jail") {
     content:
       `🔒 تم سجن ${target} لمدة **${minutes} دقيقة**.`,
     ephemeral: false
-  });
-}    
+  });    
 } catch (error) {
 
   console.error(
