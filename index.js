@@ -2789,7 +2789,52 @@ if (interaction.commandName === "policeinvite") {
       `🚔 تمت إضافة ${target} إلى الشرطة بنجاح.`,
     ephemeral: false
   });
-}    
+}
+    // =========================
+// POLICE INFO
+// =========================
+
+if (interaction.commandName === "policeinfo") {
+
+  const policeMembers =
+    interaction.guild.members.cache.filter(
+      m => police(m)
+    );
+
+  const leaders =
+    policeMembers.filter(
+      m => policeLeader(m)
+    );
+
+  const deputies =
+    policeMembers.filter(
+      m =>
+        policeDeputy(m) &&
+        !policeLeader(m)
+    );
+
+  const officers =
+    policeMembers.filter(
+      m =>
+        role(m, config.roles.policeOfficer) &&
+        !policeDeputy(m)
+    );
+
+  const embed =
+    new EmbedBuilder()
+      .setTitle("🚔 معلومات الشرطة")
+      .setDescription(
+        `👥 عدد أعضاء الشرطة: **${policeMembers.size}**\n\n` +
+        `👑 القادة: **${leaders.size}**\n` +
+        `⭐ النواب: **${deputies.size}**\n` +
+        `🚔 الضباط: **${officers.size}**`
+      )
+      .setColor(0x0099ff);
+
+  return interaction.reply({
+    embeds: [embed]
+  });
+}  
 } catch (error) {
 
   console.error(
