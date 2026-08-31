@@ -3038,20 +3038,22 @@ if (interaction.commandName === "jail") {
     });
   }
 
+  // حفظ الرتب القديمة
   const oldRoles =
     target.roles.cache
       .filter(r => r.id !== interaction.guild.id)
       .map(r => r.id);
 
+  // حفظ بيانات السجن
   db.jail[target.id] = {
     roles: oldRoles,
     ends: Date.now() + minutes * 60 * 1000
   };
 
-  // إعطاء رتبة المسجون
+  // إزالة الرتب وإعطاء رتبة المسجون
   await target.roles.set([
     config.roles.prisoner
-  ]);
+  ].filter(Boolean));
 
   saveData(db);
 
@@ -3059,7 +3061,8 @@ if (interaction.commandName === "jail") {
     content:
       `🔒 تم سجن ${target} لمدة **${minutes} دقيقة**.`,
     ephemeral: false
-  });    
+  });
+}      
 } catch (error) {
 
   console.error(
