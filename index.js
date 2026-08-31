@@ -2830,12 +2830,7 @@ if (interaction.commandName === "policeinfo") {
         `🚔 الضباط: **${officers.size}**`
       )
       .setColor(0x0099ff);
-
-  return interaction.reply({
-    embeds: [embed]
-  });
-}
- // =========================
+// =========================
 // JAIL
 // =========================
 
@@ -2861,6 +2856,13 @@ if (interaction.commandName === "jail") {
     });
   }
 
+  if (!minutes || minutes <= 0) {
+    return interaction.reply({
+      content: "❌ حدد مدة سجن صحيحة بالدقائق.",
+      ephemeral: true
+    });
+  }
+
   if (target.id === id) {
     return interaction.reply({
       content: "❌ لا يمكنك سجن نفسك.",
@@ -2878,9 +2880,10 @@ if (interaction.commandName === "jail") {
     ends: Date.now() + minutes * 60 * 1000
   };
 
-  await target.roles.set(
-    [config.roles.jailed].filter(Boolean)
-  );
+  // إعطاء رتبة المسجون
+  await target.roles.set([
+    config.roles.prisoner
+  ]);
 
   saveData(db);
 
@@ -2889,7 +2892,7 @@ if (interaction.commandName === "jail") {
       `🔒 تم سجن ${target} لمدة **${minutes} دقيقة**.`,
     ephemeral: false
   });
-}     
+}    
 } catch (error) {
 
   console.error(
