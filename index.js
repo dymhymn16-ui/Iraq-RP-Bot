@@ -2834,7 +2834,62 @@ if (interaction.commandName === "policeinfo") {
   return interaction.reply({
     embeds: [embed]
   });
-}  
+}
+ // =========================
+// JAIL
+// =========================
+
+if (interaction.commandName === "jail") {
+
+  if (!police(member)) {
+    return interaction.reply({
+      content: "❌ هذا الأمر مخصص للشرطة فقط.",
+      ephemeral: true
+    });
+  }
+
+  const target =
+    interaction.options.getMember("user");
+
+  const minutes =
+    interaction.options.getInteger("minutes");
+
+  if (!target) {
+    return interaction.reply({
+      content: "❌ لم يتم العثور على العضو.",
+      ephemeral: true
+    });
+  }
+
+  if (target.id === id) {
+    return interaction.reply({
+      content: "❌ لا يمكنك سجن نفسك.",
+      ephemeral: true
+    });
+  }
+
+  const oldRoles =
+    target.roles.cache
+      .filter(r => r.id !== interaction.guild.id)
+      .map(r => r.id);
+
+  db.jail[target.id] = {
+    roles: oldRoles,
+    ends: Date.now() + minutes * 60 * 1000
+  };
+
+  await target.roles.set(
+    [config.roles.jailed].filter(Boolean)
+  );
+
+  saveData(db);
+
+  return interaction.reply({
+    content:
+      `🔒 تم سجن ${target} لمدة **${minutes} دقيقة**.`,
+    ephemeral: false
+  });
+}     
 } catch (error) {
 
   console.error(
