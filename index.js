@@ -2618,7 +2618,39 @@ if (interaction.commandName === "rob") {
       `📦 تمت إضافة المسروقات إلى مخزن العصابة.`,
     ephemeral: false
   });
-      }   
+      }
+      // =========================
+// REPORT
+// =========================
+
+if (interaction.commandName === "report") {
+
+  const text =
+    interaction.options.getString("text");
+
+  if (!db.reports) {
+    db.reports = {};
+  }
+
+  const reportId =
+    `report_${Date.now()}`;
+
+  db.reports[reportId] = {
+    userId: id,
+    text: text,
+    createdAt: Date.now()
+  };
+
+  saveData(db);
+
+  return interaction.reply({
+    content:
+      `📢 **تم تقديم البلاغ بنجاح!**\n\n` +
+      `👤 مقدم البلاغ: ${interaction.user}\n` +
+      `📝 البلاغ: **${text}**`,
+    ephemeral: false
+  });
+    }
 } catch (error) {
 
   console.error(
